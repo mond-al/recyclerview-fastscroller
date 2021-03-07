@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.al.mond.example.simple.SimpleAdapter
 import com.al.mond.example.simple.SimpleOffsetDecoration
 import com.al.mond.fastscroller.FastScroller
-import com.al.mond.support.dp2px
+import com.al.mond.fastscroller.dp2px
 
 
 class MainActivity : AppCompatActivity() {

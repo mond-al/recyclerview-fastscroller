@@ -1,5 +1,7 @@
 package com.al.mond.fastscroller
 
+import android.content.res.Resources
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -128,3 +130,9 @@ private fun Number.getInMinMaX(min: Number, max: Number): Float {
     val minimum = min.toFloat().coerceAtLeast(this.toFloat())
     return minimum.coerceAtMost(max.toFloat())
 }
+
+fun Number.dp2px() = TypedValue.applyDimension(
+    TypedValue.COMPLEX_UNIT_DIP,
+    this.toFloat(),
+    Resources.getSystem().displayMetrics
+).toInt()

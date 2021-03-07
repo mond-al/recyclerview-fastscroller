@@ -33,8 +33,8 @@ android {
 }
 
 dependencies {
-    // api project(":fastscroller")
-    api 'com.github.mond-al:recyclerview-fastscroller:0.1.0'
+     api project(":fastscroller")
+//    api 'com.github.mond-al:recyclerview-fastscroller:0.1.0'
 
     api "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     api 'androidx.core:core-ktx:1.3.2'
