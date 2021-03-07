@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
             adapter = SimpleAdapter(10000)
             addItemDecoration(SimpleOffsetDecoration(20))
         }.also { recyclerView ->
-            FastScroller(createScrollHandleView()).attachTo(recyclerView)
+            FastScroller(createScrollHandleView(), 400, 3000).attachTo(recyclerView)
         }
     }
 
