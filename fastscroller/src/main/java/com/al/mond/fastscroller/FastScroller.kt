@@ -19,6 +19,8 @@ import androidx.recyclerview.widget.RecyclerView
  *
  * @author mond.al
  * @property scrollHandleView
+ * @param fadeOutDuration hide animation duration time (ms)
+ * @param hideDelayMillis hide animation delay time (ms)
  */
 
 class FastScroller(
@@ -136,7 +138,8 @@ class FastScroller(
             runnable = Runnable { setHandleView(false) }
             handler?.postDelayed(runnable, hideDelayMillis)
             scrollHandleView.clearAnimation()
-            scrollHandleView.alpha = 1f
+            if(scrollHandleView.alpha != 1f)
+                scrollHandleView.alpha = 1f
         } else {
             val anim = AlphaAnimation(1f, 0f).apply {
                 duration = fadeOutDuration
@@ -144,11 +147,10 @@ class FastScroller(
                 setAnimationListener(object : Animation.AnimationListener {
                     override fun onAnimationEnd(animation: Animation?) {
                         if (isMovedByHandleDrag)
-                            scrollHandleView.alpha = 1f
+                            scrollHandleView.alpha = 1f // cancel
                         else
-                            scrollHandleView.alpha = 0f
+                            scrollHandleView.alpha = 0f // end
                     }
-
                     override fun onAnimationStart(animation: Animation?) {}
                     override fun onAnimationRepeat(animation: Animation?) {}
                 })
