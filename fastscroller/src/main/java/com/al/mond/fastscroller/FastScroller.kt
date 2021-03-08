@@ -4,7 +4,10 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import java.lang.IllegalArgumentException
+import kotlin.random.Random
 
 
 /**
@@ -23,13 +26,18 @@ class FastScroller(
     private val hideDelayMillis: Long = 1000.toLong(),
 ) {
     private lateinit var listView: RecyclerView
+    private lateinit var layoutManager: LinearLayoutManager
+
     private var isMovedByHandleDrag = false
     private var runnable = Runnable { }
 
     private  var listViewAdapter: BubbleAdapter? = null
 
     fun bind(recyclerView: RecyclerView) {
+        if(recyclerView.layoutManager !is LinearLayoutManager)
+            throw IllegalArgumentException("recyclerView's layoutManager is not LinearLayoutManager")
         listView = recyclerView
+        layoutManager = recyclerView.layoutManager as LinearLayoutManager
         if(bubbleListener!=null && recyclerView.adapter is BubbleAdapter) {
             bubbleListener.setVisible(false)
             listViewAdapter = recyclerView.adapter as BubbleAdapter
@@ -86,7 +94,8 @@ class FastScroller(
             }
 
             private fun updateRecyclerViewPosition(adapterPosition: Int) {
-                listView.scrollToPosition(adapterPosition)
+                // Trick! by a thumb. you have a big finger! :~)
+                layoutManager.scrollToPositionWithOffset(adapterPosition, Random.nextInt(handleView.height*2))
             }
 
             private fun getAdapterPosition(relativePos: Float, itemCount: Int) = (relativePos * itemCount).getInMinMaX(0, itemCount - 1).toInt()
