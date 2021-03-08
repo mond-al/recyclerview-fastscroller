@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.al.mond.example.simple.SimpleAdapter
 import com.al.mond.example.simple.SimpleOffsetDecoration
@@ -39,7 +40,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<RecyclerView>(R.id.items).apply {
-            adapter = SimpleAdapter(20)
+            adapter = SimpleAdapter(2000)
+            layoutManager = GridLayoutManager(this@MainActivity,3)
             addItemDecoration(SimpleOffsetDecoration(20))
         }.also { recyclerView ->
             // Simple Bind!!
