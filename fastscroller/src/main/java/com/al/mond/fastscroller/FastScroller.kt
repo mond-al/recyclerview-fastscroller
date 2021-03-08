@@ -1,16 +1,11 @@
 package com.al.mond.fastscroller
 
 import android.content.res.Resources
-import android.os.Handler
-import android.os.Looper
 import android.util.TypedValue
-import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
-import android.widget.FrameLayout
 import androidx.recyclerview.widget.RecyclerView
 
 
@@ -18,50 +13,28 @@ import androidx.recyclerview.widget.RecyclerView
  * Fast scroller simple version.
  *
  * @author mond.al
- * @property scrollHandleView
+ * @property handleView
  * @param fadeOutDuration hide animation duration time (ms)
  * @param hideDelayMillis hide animation delay time (ms)
  */
 
 class FastScroller(
-    private val scrollHandleView: View,
-    private val fadeOutDuration: Long = 300.toLong(),
-    private val hideDelayMillis: Long = 1000.toLong()
+        private val handleView: View,
+        private val fadeOutDuration: Long = 300.toLong(),
+        private val hideDelayMillis: Long = 1000.toLong(),
 ) {
+    private lateinit var recyclerView: RecyclerView
     private var isMovedByHandleDrag = false
-    private var handler: Handler? = null
     private var runnable = Runnable { }
 
-    /**
-     * Add to Recyclerview's parent with [scrollHandleView].
-     * And bind to [recyclerview] scroll position and [scrollHandleView] position.
-     *
-     * @param recyclerview
-     */
-    fun attachTo(recyclerview: RecyclerView) {
-        addScrollerView(recyclerview)
-        initHandlerPositionChangedListener(recyclerview)
-        initUpdateHandlePositionListener(recyclerview)
-        handler = Handler(Looper.myLooper()!!)
+    fun bind(rv: RecyclerView) {
+        recyclerView = rv
+        initHandlerPositionChangedListener()
+        initUpdateHandlePositionListener()
     }
 
-    private fun addScrollerView(rv: RecyclerView) {
-        val fastScrollerView = FrameLayout(rv.context)
-        val handleLayoutParams = FrameLayout.LayoutParams(scrollHandleView.layoutParams)
-        handleLayoutParams.gravity = Gravity.END
-        fastScrollerView.addView(scrollHandleView, handleLayoutParams)
-        if (rv.layoutParams is ViewGroup.MarginLayoutParams) {
-            (rv.parent as ViewGroup).addView(
-                fastScrollerView,
-                ViewGroup.MarginLayoutParams(rv.layoutParams)
-            )
-        } else {
-            throw IllegalArgumentException("The parent layout is not support type.")
-        }
-    }
-
-    private fun initHandlerPositionChangedListener(recyclerView: RecyclerView) {
-        scrollHandleView.setOnTouchListener(object : View.OnTouchListener {
+    private fun initHandlerPositionChangedListener() {
+        handleView.setOnTouchListener(object : View.OnTouchListener {
             private var mDownX: Float = 0.toFloat()
             private var mDownY: Float = 0.toFloat()
             private var mDownXInHandleView: Float = 0.toFloat()
@@ -111,8 +84,8 @@ class FastScroller(
         })
     }
 
-    private fun initUpdateHandlePositionListener(rv: RecyclerView) {
-        rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+    private fun initUpdateHandlePositionListener() {
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
                 if (isMovedByHandleDrag) return
                 updateHandlePosition(getPercent(rv))
@@ -129,17 +102,17 @@ class FastScroller(
 
     private fun updateHandlePosition(percent: Float) {
         setHandleView(true)
-        scrollHandleView.y = getHandlerY(percent)
+        handleView.y = getHandlerY(percent)
     }
 
     private fun setHandleView(visible: Boolean) {
         if (visible || isMovedByHandleDrag) {
-            handler?.removeCallbacks(runnable)
-            runnable = Runnable { setHandleView(false) }
-            handler?.postDelayed(runnable, hideDelayMillis)
-            scrollHandleView.clearAnimation()
-            if(scrollHandleView.alpha != 1f)
-                scrollHandleView.alpha = 1f
+            handleView.clearAnimation()
+            if (handleView.alpha != 1f)
+                handleView.alpha = 1f
+            handleView.removeCallbacks(runnable)                // clear running callback
+            runnable = Runnable { setHandleView(false) }        // set new callback
+            handleView.postDelayed(runnable, hideDelayMillis)   // post delayed call
         } else {
             val anim = AlphaAnimation(1f, 0f).apply {
                 duration = fadeOutDuration
@@ -147,20 +120,21 @@ class FastScroller(
                 setAnimationListener(object : Animation.AnimationListener {
                     override fun onAnimationEnd(animation: Animation?) {
                         if (isMovedByHandleDrag)
-                            scrollHandleView.alpha = 1f // cancel
+                            handleView.alpha = 1f // cancel
                         else
-                            scrollHandleView.alpha = 0f // end
+                            handleView.alpha = 0f // end
                     }
+
                     override fun onAnimationStart(animation: Animation?) {}
                     override fun onAnimationRepeat(animation: Animation?) {}
                 })
             }
-            scrollHandleView.startAnimation(anim)
+            handleView.startAnimation(anim)
         }
     }
 
     private fun getHandlerY(percent: Float): Float {
-        val scrollbarHeight = (scrollHandleView.parent as View).height - scrollHandleView.height
+        val scrollbarHeight = (handleView.parent as View).height - handleView.height
         return (percent * scrollbarHeight).getInMinMaX(0f, scrollbarHeight)
     }
 }
@@ -178,8 +152,3 @@ private fun Number.getInMinMaX(min: Number, max: Number): Float {
     return minimum.coerceAtMost(max.toFloat())
 }
 
-fun Number.dp2px() = TypedValue.applyDimension(
-    TypedValue.COMPLEX_UNIT_DIP,
-    this.toFloat(),
-    Resources.getSystem().displayMetrics
-).toInt()
