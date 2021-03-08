@@ -1,7 +1,5 @@
 package com.al.mond.fastscroller
 
-import android.content.res.Resources
-import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AlphaAnimation
@@ -19,16 +17,23 @@ import androidx.recyclerview.widget.RecyclerView
  */
 
 class FastScroller(
-        private val handleView: View,
-        private val fadeOutDuration: Long = 300.toLong(),
-        private val hideDelayMillis: Long = 1000.toLong(),
+    private val handleView: View,
+    private val bubbleListener: BubbleListener? = null,
+    private val fadeOutDuration: Long = 300.toLong(),
+    private val hideDelayMillis: Long = 1000.toLong(),
 ) {
-    private lateinit var recyclerView: RecyclerView
+    private lateinit var listView: RecyclerView
     private var isMovedByHandleDrag = false
     private var runnable = Runnable { }
 
-    fun bind(rv: RecyclerView) {
-        recyclerView = rv
+    private  var listViewAdapter: BubbleAdapter? = null
+
+    fun bind(recyclerView: RecyclerView) {
+        listView = recyclerView
+        if(bubbleListener!=null && recyclerView.adapter is BubbleAdapter) {
+            bubbleListener.setVisible(false)
+            listViewAdapter = recyclerView.adapter as BubbleAdapter
+        }
         initHandlerPositionChangedListener()
         initUpdateHandlePositionListener()
     }
@@ -51,11 +56,12 @@ class FastScroller(
                     }
                     MotionEvent.ACTION_MOVE -> {
                         if (isMovedByHandleDrag.not()) return false
-                        val itemCount = recyclerView.adapter?.itemCount ?: 0
+                        val itemCount = listView.adapter?.itemCount ?: 0
                         val percent = calculateHandlePercentBy(handleView, event)
                         val adapterPosition = getAdapterPosition(percent, itemCount)
                         updateHandlePosition(percent)
                         updateRecyclerViewPosition(adapterPosition)
+                        updateBubble(adapterPosition)
                         return true
                     }
                     MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
@@ -65,27 +71,35 @@ class FastScroller(
                         mDownXInHandleView = 0f
                         mDownYInHandleView = 0f
                         handleView.performClick()
+                        bubbleListener?.setVisible(false)
                         return true
                     }
                     else -> return false
                 }
             }
 
+            private fun updateBubble(adapterPosition: Int) {
+                if (bubbleListener != null && listViewAdapter != null) {
+                    bubbleListener.setVisible(true)
+                    bubbleListener.setBubble(listViewAdapter!!.getBubbleItem(adapterPosition))
+                }
+            }
+
             private fun updateRecyclerViewPosition(adapterPosition: Int) {
-                recyclerView.scrollToPosition(adapterPosition)
+                listView.scrollToPosition(adapterPosition)
             }
 
             private fun getAdapterPosition(relativePos: Float, itemCount: Int) = (relativePos * itemCount).getInMinMaX(0, itemCount - 1).toInt()
 
             private fun calculateHandlePercentBy(handle: View, event: MotionEvent): Float {
                 val rawY: Float = event.rawY - (handle.getViewRawY() + mDownYInHandleView)
-                return rawY / (recyclerView.height - handle.height)
+                return rawY / (listView.height - handle.height)
             }
         })
     }
 
     private fun initUpdateHandlePositionListener() {
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        listView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
                 if (isMovedByHandleDrag) return
                 updateHandlePosition(getPercent(rv))
@@ -102,7 +116,9 @@ class FastScroller(
 
     private fun updateHandlePosition(percent: Float) {
         setHandleView(true)
-        handleView.y = getHandlerY(percent)
+        val handlerY = getHandlerY(percent)
+        handleView.y = handlerY
+        bubbleListener?.setViewY(handlerY)
     }
 
     private fun setHandleView(visible: Boolean) {
@@ -152,3 +168,13 @@ private fun Number.getInMinMaX(min: Number, max: Number): Float {
     return minimum.coerceAtMost(max.toFloat())
 }
 
+
+interface BubbleAdapter {
+    fun getBubbleItem(adapterPosition: Int): String
+}
+
+interface BubbleListener {
+    fun setBubble(str: String)
+    fun setViewY(y:Float)
+    fun setVisible(isVisible: Boolean)
+}

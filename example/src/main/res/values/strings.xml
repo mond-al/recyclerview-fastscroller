@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">FastScroller Example</string>
+    <string name="quick_scroll_handle">quick scroll handle</string>
 </resources>

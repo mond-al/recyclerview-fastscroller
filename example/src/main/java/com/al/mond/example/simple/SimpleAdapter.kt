@@ -6,8 +6,10 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.al.mond.example.R
+import com.al.mond.fastscroller.BubbleAdapter
 
-class SimpleAdapter internal constructor(private val count: Int) : RecyclerView.Adapter<SimpleAdapter.ViewHolder>() {
+class SimpleAdapter internal constructor(private val count: Int) :
+    RecyclerView.Adapter<SimpleAdapter.ViewHolder>(), BubbleAdapter {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(
             LayoutInflater.from(parent.context).inflate(R.layout.recyclerview_item, parent, false)
@@ -25,5 +27,9 @@ class SimpleAdapter internal constructor(private val count: Int) : RecyclerView.
     inner class ViewHolder internal constructor(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
         val textView: TextView = itemView.findViewById(R.id.content_text)
+    }
+
+    override fun getBubbleItem(adapterPosition: Int): String {
+        return "$adapterPosition"
     }
 }
