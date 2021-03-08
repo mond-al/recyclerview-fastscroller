@@ -6,7 +6,6 @@ import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import java.lang.IllegalArgumentException
 import kotlin.random.Random
 
 
@@ -31,14 +30,14 @@ class FastScroller(
     private var isMovedByHandleDrag = false
     private var runnable = Runnable { }
 
-    private  var listViewAdapter: BubbleAdapter? = null
+    private var listViewAdapter: BubbleAdapter? = null
 
     fun bind(recyclerView: RecyclerView) {
-        if(recyclerView.layoutManager !is LinearLayoutManager)
+        if (recyclerView.layoutManager !is LinearLayoutManager)
             throw IllegalArgumentException("recyclerView's layoutManager is not LinearLayoutManager")
         listView = recyclerView
         layoutManager = recyclerView.layoutManager as LinearLayoutManager
-        if(bubbleListener!=null && recyclerView.adapter is BubbleAdapter) {
+        if (bubbleListener != null && recyclerView.adapter is BubbleAdapter) {
             bubbleListener.setVisible(false)
             listViewAdapter = recyclerView.adapter as BubbleAdapter
         }
@@ -95,10 +94,18 @@ class FastScroller(
 
             private fun updateRecyclerViewPosition(adapterPosition: Int) {
                 // Trick! by a thumb. you have a big finger! :~)
-                layoutManager.scrollToPositionWithOffset(adapterPosition, Random.nextInt(handleView.height*2))
+                if (listView.adapter?.itemCount!! > 300) {
+                    layoutManager.scrollToPositionWithOffset(
+                        adapterPosition,
+                        Random.nextInt(handleView.height)
+                    )
+                } else {
+                    layoutManager.scrollToPosition(adapterPosition)
+                }
             }
 
-            private fun getAdapterPosition(relativePos: Float, itemCount: Int) = (relativePos * itemCount).getInMinMaX(0, itemCount - 1).toInt()
+            private fun getAdapterPosition(relativePos: Float, itemCount: Int) =
+                (relativePos * itemCount).getInMinMaX(0, itemCount - 1).toInt()
 
             private fun calculateHandlePercentBy(handle: View, event: MotionEvent): Float {
                 val rawY: Float = event.rawY - (handle.getViewRawY() + mDownYInHandleView)
@@ -184,6 +191,6 @@ interface BubbleAdapter {
 
 interface BubbleListener {
     fun setBubble(str: String)
-    fun setViewY(y:Float)
+    fun setViewY(y: Float)
     fun setVisible(isVisible: Boolean)
 }

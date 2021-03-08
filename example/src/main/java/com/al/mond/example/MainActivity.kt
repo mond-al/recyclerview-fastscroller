@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<RecyclerView>(R.id.items).apply {
-            adapter = SimpleAdapter(10000)
+            adapter = SimpleAdapter(20)
             addItemDecoration(SimpleOffsetDecoration(20))
         }.also { recyclerView ->
             // Simple Bind!!
