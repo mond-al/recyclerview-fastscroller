@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<RecyclerView>(R.id.items).apply {
-            adapter = SimpleAdapter(2000)
+            adapter = SimpleAdapter(5000)
             layoutManager = GridLayoutManager(this@MainActivity,3)
             addItemDecoration(SimpleOffsetDecoration(20))
         }.also { recyclerView ->
